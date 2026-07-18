@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from database.db import get_db, init_db, seed_db
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
+import os
 
 app = Flask(__name__)
+# Secret key for session management
+app.secret_key = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
 
 # Initialize database on startup
 with app.app_context():
@@ -93,9 +96,11 @@ def login():
             user = cursor.fetchone()
 
             if user and check_password_hash(user['password_hash'], password):
-                # Login successful - for now, redirect to a simple success page
-                # In a full implementation, you would set up user session here
-                return redirect(url_for("login"))  # Redirect back to login with success message
+                # Login successful - set user session
+                session['user_id'] = user['id']
+                session['user_name'] = user['name']
+                # Redirect to landing page or next page
+                return redirect(url_for("landing"))
             else:
                 # Invalid credentials
                 return render_template("login.html", error="Invalid email or password")
@@ -125,7 +130,10 @@ def privacy():
 
 @app.route("/logout")
 def logout():
-    return "Logout — coming in Step 3"
+    # Clear the session
+    session.clear()
+    # Redirect to login page so user can log in again
+    return redirect(url_for("login"))
 
 
 @app.route("/profile")
