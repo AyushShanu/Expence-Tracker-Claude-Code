@@ -3,46 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>{% block title %}Spendly{% endblock %}</title>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Global CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Page specific CSS -->
     {% block head %}{% endblock %}
+    {% block styles %}{% endblock %}
 </head>
+
 <body>
+
+    <!-- ================= NAVBAR ================= -->
 
     <nav class="navbar">
         <div class="nav-inner">
+
             <a href="{{ url_for('landing') }}" class="nav-brand">
                 <span class="brand-icon">◈</span>
                 <span class="brand-name">Spendly</span>
             </a>
+
             <div class="nav-links">
-                {% if session.user_id %}
+                {% if session.get('user_id') %}
+                    <a href="{{ url_for('profile') }}">Profile</a>
                     <a href="{{ url_for('logout') }}">Logout</a>
                 {% else %}
-                    <a href="{{ url_for('login') }}">Sign in</a>
-                    <a href="{{ url_for('register') }}" class="nav-cta">Get started</a>
+                    <a href="{{ url_for('login') }}">Sign In</a>
+                    <a href="{{ url_for('register') }}" class="nav-cta">
+                        Get Started
+                    </a>
                 {% endif %}
             </div>
+
         </div>
     </nav>
+
+    <!-- ================= MAIN ================= -->
 
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- ================= FOOTER ================= -->
+
     <footer class="footer">
         <div class="footer-inner">
+
             <span class="brand-icon">◈</span>
-            <span class="footer-name">Spendly</span>
-            <p class="footer-copy">Track every rupee. Own your finances.</p>
-            <p><a href="/terms">Terms and Conditions</a> | <a href="/privacy">Privacy Policy</a></p>
+
+            <span class="footer-name">
+                Spendly
+            </span>
+
+            <p class="footer-copy">
+                Track every rupee. Own your finances.
+            </p>
+
+            <div class="footer-links">
+                <a href="/terms">Terms & Conditions</a>
+                <span>•</span>
+                <a href="/privacy">Privacy Policy</a>
+            </div>
+
         </div>
     </footer>
 
+    <!-- Global JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Page specific JS -->
     {% block scripts %}{% endblock %}
+
 </body>
 </html>
