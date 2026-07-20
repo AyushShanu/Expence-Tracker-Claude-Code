@@ -138,7 +138,42 @@ def logout():
 
 @app.route("/profile")
 def profile():
-    return "Profile page — coming in Step 4"
+    # Authentication check
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+
+    # Hardcoded user data for demonstration
+    user_data = {
+        'name': 'Demo User',
+        'email': 'demo@example.com',
+        'member_since': 'January 2026',
+        'total_expenses': 12450,
+        'transaction_count': 42,
+        'average_transaction': 296
+    }
+
+    # Hardcoded transaction data for demonstration
+    recent_transactions = [
+        {'id': 1, 'date': '2026-07-15', 'description': 'Grocery Shopping', 'category': 'Food', 'amount': 85.50},
+        {'id': 2, 'date': '2026-07-14', 'description': 'Electricity Bill', 'category': 'Bills', 'amount': 1240.00},
+        {'id': 3, 'date': '2026-07-13', 'description': 'Movie Tickets', 'category': 'Entertainment', 'amount': 1200.00},
+        {'id': 4, 'date': '2026-07-12', 'description': 'Fuel Refill', 'category': 'Transport', 'amount': 2500.00},
+        {'id': 5, 'date': '2026-07-11', 'description': 'Pharmacy', 'category': 'Health', 'amount': 450.75}
+    ]
+
+    # Hardcoded category breakdown for demonstration
+    category_breakdown = [
+        {'category': 'Food', 'amount': 3200, 'percentage': 35},
+        {'category': 'Bills', 'amount': 2450, 'percentage': 27},
+        {'category': 'Transport', 'amount': 1800, 'percentage': 20},
+        {'category': 'Entertainment', 'amount': 1200, 'percentage': 13},
+        {'category': 'Health', 'amount': 450, 'percentage': 5}
+    ]
+
+    return render_template('profile.html',
+                         user=user_data,
+                         transactions=recent_transactions,
+                         categories=category_breakdown)
 
 
 @app.route("/expenses/add")

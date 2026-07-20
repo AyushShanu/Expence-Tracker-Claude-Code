@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block content %}
+<section class="profile-page">
+  <div class="profile-container">
+
+    <div class="page-header">
+      <h1>My Profile</h1>
+      <p>View and manage your account information</p>
+    </div>
+
+    <div class="card profile-card">
+      <div class="avatar">{{ user.name[0] }}</div>
+
+      <div class="profile-details">
+        <h2>{{ user.name }}</h2>
+        <p>{{ user.email }}</p>
+        <small>Member since {{ user.member_since }}</small>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span>Total Spent</span>
+        <h3>${{ "%.2f"|format(user.total_expenses) }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <span>Transactions</span>
+        <h3>{{ user.transaction_count }}</h3>
+      </div>
+
+      <div class="stat-card">
+        <span>Top Category</span>
+        <h3>{% if categories %}{{ categories[0].category }}{% else %}N/A{% endif %}</h3>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Recent Activity</h2>
+
+      <table class="transactions">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+
+        <tbody>
+        {% for transaction in transactions %}
+          <tr>
+            <td>{{ transaction.date }}</td>
+            <td>{{ transaction.description }}</td>
+            <td>
+              <span class="badge">
+                {{ transaction.category }}
+              </span>
+            </td>
+            <td>${{ "%.2f"|format(transaction.amount) }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Spending by Category</h2>
+
+      {% for category in categories %}
+      <div class="category">
+        <div class="category-row">
+          <strong>{{ category.category }}</strong>
+          <span>${{ "%.2f"|format(category.amount) }}</span>
+        </div>
+
+        <div class="progress">
+          <div class="fill" style="width: {{ category.percentage }}%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block styles %}
+<style>
+
+.profile-page{
+padding:50px 20px;
+}
+
+.profile-container{
+max-width:950px;
+margin:auto;
+}
+
+.page-header{
+text-align:center;
+margin-bottom:40px;
+}
+
+.page-header h1{
+font-size:42px;
+margin-bottom:10px;
+font-weight:700;
+}
+
+.page-header p{
+color:#777;
+}
+
+.card{
+background:#fff;
+border:1px solid #e5e5e5;
+border-radius:18px;
+padding:30px;
+margin-bottom:28px;
+box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
+
+.profile-card{
+display:flex;
+align-items:center;
+gap:24px;
+}
+
+.avatar{
+width:72px;
+height:72px;
+border-radius:50%;
+background:#dff3e5;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+font-weight:bold;
+color:#2d6a4f;
+flex-shrink:0;
+}
+
+.profile-details h2{
+margin:0;
+font-size:30px;
+}
+
+.profile-details p{
+margin:8px 0;
+color:#666;
+}
+
+.profile-details small{
+color:#999;
+}
+
+.stats-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:20px;
+margin-bottom:28px;
+}
+
+.stat-card{
+background:white;
+border:1px solid #e5e5e5;
+border-radius:18px;
+padding:25px;
+text-align:center;
+box-shadow:0 5px 18px rgba(0,0,0,.04);
+}
+
+.stat-card span{
+display:block;
+color:#777;
+margin-bottom:12px;
+}
+
+.stat-card h3{
+font-size:34px;
+margin:0;
+}
+
+.section-title{
+margin-bottom:20px;
+}
+
+.transactions{
+width:100%;
+border-collapse:collapse;
+}
+
+.transactions th{
+background:#f7f7f7;
+padding:16px;
+text-align:left;
+}
+
+.transactions td{
+padding:16px;
+border-bottom:1px solid #eee;
+}
+
+.transactions tr:hover{
+background:#fafafa;
+}
+
+.badge{
+padding:6px 12px;
+border-radius:20px;
+background:#dff3e5;
+color:#2d6a4f;
+font-size:13px;
+font-weight:600;
+}
+
+.category{
+margin-bottom:24px;
+}
+
+.category-row{
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+}
+
+.progress{
+height:10px;
+background:#ececec;
+border-radius:100px;
+overflow:hidden;
+}
+
+.fill{
+height:100%;
+background:#2d6a4f;
+}
+
+@media(max-width:768px){
+
+.stats-grid{
+grid-template-columns:1fr;
+}
+
+.profile-card{
+flex-direction:column;
+text-align:center;
+}
+
+.transactions{
+display:block;
+overflow-x:auto;
+}
+
+}
+
+</style>
+{% endblock %}
