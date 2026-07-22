@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from database.db import get_db, init_db, seed_db
+from database.queries import get_user_by_id, get_user_summary_stats, get_user_recent_transactions, get_user_category_breakdown
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 # Secret key for session management
@@ -142,38 +144,70 @@ def profile():
     if not session.get('user_id'):
         return redirect(url_for('login'))
 
-    # Hardcoded user data for demonstration
+    user_id = session.get('user_id')
+
+    # Get user data from database
+    user = get_user_by_id(user_id)
+    if not user:
+        # If user not found, clear session and redirect to login
+        session.clear()
+        return redirect(url_for('login'))
+
+    # Format member_since date
+    member_since = "Unknown"
+    if user.get('created_at'):
+        try:
+            # Handle both string and datetime objects
+            created_at = user['created_at']
+            if isinstance(created_at, datetime):
+                date_obj = created_at
+            else:
+                # Assuming it's a string, try to parse it
+                date_obj = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S')
+            member_since = date_obj.strftime('%B %Y')
+        except ValueError:
+            try:
+                # Try another common format for string dates
+                if isinstance(created_at, str):
+                    date_obj = datetime.strptime(created_at, '%Y-%m-%d')
+                    member_since = date_obj.strftime('%B %Y')
+            except ValueError:
+                # If parsing fails, use a default
+                member_since = "Unknown"
+        except Exception:
+            # If any other error occurs, use a default
+            member_since = "Unknown"
+
+    # Get summary statistics
+    stats = get_user_summary_stats(user_id)
+
+    # Get recent transactions (limit to 5 for display)
+    transactions = get_user_recent_transactions(user_id, limit=5)
+
+    # Get category breakdown
+    categories = get_user_category_breakdown(user_id)
+
+    # Prepare user data for template (matching the expected format)
     user_data = {
-        'name': 'Demo User',
-        'email': 'demo@example.com',
-        'member_since': 'January 2026',
-        'total_expenses': 12450,
-        'transaction_count': 42,
-        'average_transaction': 296
+        'name': user['name'],
+        'email': user['email'],
+        'member_since': member_since
     }
 
-    # Hardcoded transaction data for demonstration
-    recent_transactions = [
-        {'id': 1, 'date': '2026-07-15', 'description': 'Grocery Shopping', 'category': 'Food', 'amount': 85.50},
-        {'id': 2, 'date': '2026-07-14', 'description': 'Electricity Bill', 'category': 'Bills', 'amount': 1240.00},
-        {'id': 3, 'date': '2026-07-13', 'description': 'Movie Tickets', 'category': 'Entertainment', 'amount': 1200.00},
-        {'id': 4, 'date': '2026-07-12', 'description': 'Fuel Refill', 'category': 'Transport', 'amount': 2500.00},
-        {'id': 5, 'date': '2026-07-11', 'description': 'Pharmacy', 'category': 'Health', 'amount': 450.75}
-    ]
+    # Prepare stats for template (the template expects these fields on the user object)
+    # But looking at the template, it uses user.total_expenses, user.transaction_count
+    # So we need to add these to the user object
+    user_data['total_expenses'] = stats['total_spent'] if stats else 0
+    user_data['transaction_count'] = stats['transaction_count'] if stats else 0
 
-    # Hardcoded category breakdown for demonstration
-    category_breakdown = [
-        {'category': 'Food', 'amount': 3200, 'percentage': 35},
-        {'category': 'Bills', 'amount': 2450, 'percentage': 27},
-        {'category': 'Transport', 'amount': 1800, 'percentage': 20},
-        {'category': 'Entertainment', 'amount': 1200, 'percentage': 13},
-        {'category': 'Health', 'amount': 450, 'percentage': 5}
-    ]
+    # For the top category in the stats card, we'll get it from categories
+    # The template uses categories[0].category for the top category
+    # So we'll make sure categories is sorted by amount descending
 
     return render_template('profile.html',
                          user=user_data,
-                         transactions=recent_transactions,
-                         categories=category_breakdown)
+                         transactions=transactions,
+                         categories=categories)
 
 
 @app.route("/expenses/add")
