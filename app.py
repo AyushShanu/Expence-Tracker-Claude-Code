@@ -178,14 +178,18 @@ def profile():
             # If any other error occurs, use a default
             member_since = "Unknown"
 
+    # Get date filter parameters from request
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
     # Get summary statistics
-    stats = get_user_summary_stats(user_id)
+    stats = get_user_summary_stats(user_id, start_date=start_date, end_date=end_date)
 
     # Get recent transactions (limit to 5 for display)
-    transactions = get_user_recent_transactions(user_id, limit=5)
+    transactions = get_user_recent_transactions(user_id, limit=5, start_date=start_date, end_date=end_date)
 
     # Get category breakdown
-    categories = get_user_category_breakdown(user_id)
+    categories = get_user_category_breakdown(user_id, start_date=start_date, end_date=end_date)
 
     # Prepare user data for template (matching the expected format)
     user_data = {

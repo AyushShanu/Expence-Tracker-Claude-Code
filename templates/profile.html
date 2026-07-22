@@ -9,6 +9,16 @@
     <div class="page-header">
       <h1>My Profile</h1>
       <p>View and manage your account information</p>
+      <form method="GET" action="{{ url_for('profile') }}" class="date-filter-form">
+        <label for="start_date">Start Date:</label>
+        <input type="date" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+        <label for="end_date">End Date:</label>
+        <input type="date" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
+        <button type="submit">Filter</button>
+        {% if request.args.get('start_date') or request.args.get('end_date') %}
+          <a href="{{ url_for('profile') }}" class="reset-filter">Reset</a>
+        {% endif %}
+      </form>
     </div>
 
     <div class="card profile-card">
@@ -259,5 +269,72 @@ overflow-x:auto;
 
 }
 
+    .date-filter-form{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:end;
+    justify-content:center;
+    margin:20px 0;
+    }
+
+    .date-filter-form label{
+    font-weight:600;
+    }
+
+    .date-filter-form input[type="date"]{
+    padding:8px;
+    border:1px solid #e5e5e5;
+    border-radius:4px;
+    font-size:14px;
+    }
+
+    .date-filter-form button{
+    background:#2d6a4f;
+    color:#fff;
+    border:none;
+    padding:10px 20px;
+    border-radius:4px;
+    cursor:pointer;
+    font-size:14px;
+    }
+
+    .date-filter-form button:hover{
+    background:#25553e;
+    }
+
+    .reset-filter{
+    margin-left:10px;
+    color:#2d6a4f;
+    text-decoration:none;
+    font-size:14px;
+    }
+
+    .reset-filter:hover{
+    text-decoration:underline;
+    }
+
+    @media(max-width:768px){
+    .date-filter-form{
+    flex-direction:column;
+    align-items:stretch;
+    }
+
+    .date-filter-form label{
+    margin-bottom:5px;
+    }
+
+    .date-filter-form input[type="date"]{
+    width:100%;
+    }
+
+    .date-filter-form button{
+    width:100%;
+    }
+
+    .reset-filter{
+    margin-top:10px;
+    }
+    }
 </style>
 {% endblock %}
