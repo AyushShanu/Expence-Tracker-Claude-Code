@@ -214,6 +214,17 @@ def profile():
                          categories=categories)
 
 
+@app.route("/analytics")
+def analytics():
+    # Authentication check
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+
+    # For now, this is a coming soon page
+    # In the future, this would show actual analytics data
+    return render_template('analytics.html')
+
+
 @app.route("/expenses/add")
 def add_expense():
     return "Add expense — coming in Step 7"
