@@ -4,268 +4,234 @@
 
 {% block content %}
 <section class="analytics-page">
-  <div class="analytics-container">
+    <div class="analytics-container">
 
-    <div class="page-header">
-      <h1>Analytics</h1>
-      <p>Coming soon: Advanced insights into your spending patterns</p>
-    </div>
-
-    <div class="card coming-soon-card">
-      <div class="coming-soon-icon">📊</div>
-      <h2 class="coming-soon-title">Analytics Dashboard</h2>
-      <p class="coming-soon-message">
-        Get ready to dive deep into your financial data with interactive charts,
-        spending trends, and personalized insights. Our analytics suite will help
-        you understand where your money goes and make smarter financial decisions.
-      </p>
-
-      <div class="coming-soon-features">
-        <h3>Features coming soon:</h3>
-        <ul class="features-list">
-          <li>Spending trends over time</li>
-          <li>Category breakdown charts</li>
-          <li>Monthly comparison reports</li>
-          <li>Budget vs actual tracking</li>
-          <li>Expense forecasting</li>
-          <li>Custom date range analysis</li>
-        </ul>
-      </div>
-
-      <div class="coming-soon-actions">
-        <a href="{{ url_for('profile') }}" class="btn-primary">Go to Profile</a>
-        <span class="or-text">or</span>
-        <a href="#" class="btn-ghost">Notify me when ready</a>
-      </div>
-    </div>
-
-    <div class="preview-card">
-      <h3>Preview of what's coming:</h3>
-      <div class="mock-chart-placeholder">
-        <div class="chart-title">Monthly Spending Trends</div>
-        <div class="chart-placeholder">
-          <div class="placeholder-bars">
-            <div class="bar placeholder-bar"></div>
-            <div class="bar placeholder-bar"></div>
-            <div class="bar placeholder-bar"></div>
-            <div class="bar placeholder-bar"></div>
-            <div class="bar placeholder-bar"></div>
-            <div class="bar placeholder-bar"></div>
-          </div>
+        <!-- Header -->
+        <div class="page-header">
+            <h1>Analytics</h1>
+            <p class="text-muted">Insights into your spending patterns</p>
         </div>
-        <p class="chart-subtitle">Interactive charts with filtering and export options</p>
-      </div>
-    </div>
 
-  </div>
+        <!-- Summary Cards -->
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <div class="stat-label">Total Spent</div>
+                <div class="stat-value">
+                    ₹{{ "%.2f"|format(total_expense|default(0)) }}
+                </div>
+                <div class="stat-icon">
+                    <i data-lucide="trending-up"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Average Transaction</div>
+                <div class="stat-value">
+                    ₹{{ "%.2f"|format(avg_transaction|default(0)) }}
+                </div>
+                <div class="stat-icon">
+                    <i data-lucide="credit-card"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Top Category</div>
+                <div class="stat-value">
+                    {{ top_category|default("—") }}
+                </div>
+                <div class="stat-icon">
+                    <i data-lucide="pie-chart"></i>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Transactions</div>
+                <div class="stat-value">
+                    {{ txn_count|default(0) }}
+                </div>
+                <div class="stat-icon">
+                    <i data-lucide="list"></i>
+                </div>
+            </div>
+
+        </div>
+
+        
+{% if monthly_labels and monthly_data %}
+
+<div class="card">
+<h2 class="section-title">
+<i data-lucide="calendar"></i>
+Monthly Trend
+</h2>
+
+{% set total_month = monthly_data|sum %}
+
+<div class="progress-list">
+{% for i in range(monthly_labels|length) %}
+{% set percent=((monthly_data[i]/total_month)*100) if total_month>0 else 0 %}
+<div class="progress-item">
+<div class="progress-header">
+<span>{{ monthly_labels[i] }}</span>
+<span>{{ "%.1f"|format(percent) }}%</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" style="width:{{percent}}%"></div>
+</div>
+<div class="progress-value">₹{{ "%.0f"|format(monthly_data[i]) }}</div>
+</div>
+{% endfor %}
+</div>
+</div>
+
+{% endif %}
+
+
+
+        
+{% if category_labels and category_data %}
+
+<div class="card">
+<h2 class="section-title">
+<i data-lucide="pie-chart"></i>
+Category Breakdown
+</h2>
+
+{% set total_category = category_data|sum %}
+
+<div class="progress-list">
+{% for i in range(category_labels|length) %}
+{% set percent=((category_data[i]/total_category)*100) if total_category>0 else 0 %}
+<div class="progress-item">
+<div class="progress-header">
+<span>{{ category_labels[i] }}</span>
+<span>{{ "%.1f"|format(percent) }}%</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill category-fill" style="width:{{percent}}%"></div>
+</div>
+<div class="progress-value">₹{{ "%.0f"|format(category_data[i]) }}</div>
+</div>
+{% endfor %}
+</div>
+</div>
+
+{% endif %}
+
+
+    </div>
 </section>
 {% endblock %}
 
+
 {% block styles %}
 <style>
-.analytics-page{
-  padding:50px 20px;
-}
-
-.analytics-container{
-  max-width:950px;
-  margin:auto;
-}
 
 .page-header{
-  text-align:center;
-  margin-bottom:40px;
+    text-align:center;
+    margin-bottom:2rem;
 }
 
-.page-header h1{
-  font-size:42px;
-  margin-bottom:10px;
-  font-weight:700;
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:1.5rem;
+    margin-bottom:2rem;
 }
 
-.page-header p{
-  color:#777;
-  font-size:18px;
+.stat-card{
+    background:var(--paper-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:1.5rem;
+    text-align:center;
 }
 
-.coming-soon-card{
-  text-align:center;
-  padding:40px;
+.stat-label{
+    color:var(--ink-muted);
+    margin-bottom:.5rem;
 }
 
-.coming-soon-icon{
-  font-size:60px;
-  margin-bottom:20px;
-  color:#2d6a4f;
+.stat-value{
+    font-size:2rem;
+    font-weight:700;
 }
 
-.coming-soon-title{
-  font-size:32px;
-  margin-bottom:15px;
-  font-weight:600;
-  color:#0f0f0f;
+.stat-icon{
+    margin-top:1rem;
 }
 
-.coming-soon-message{
-  font-size:18px;
-  color:#6b6b6b;
-  margin-bottom:30px;
-  line-height:1.6;
+.card{
+    background:var(--paper-card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:2rem;
+    margin-bottom:2rem;
 }
 
-.coming-soon-features{
-  text-align:left;
-  max-width:500px;
-  margin:0 auto 30px;
+.section-title{
+    display:flex;
+    align-items:center;
+    gap:.5rem;
+    margin-bottom:2rem;
 }
 
-.coming-soon-features h3{
-  font-size:20px;
-  margin-bottom:15px;
-  color:#2d2d2d;
+.chart-container{
+    width:100%;
 }
 
-.features-list{
-  list-style:none;
-  padding:0;
+.progress-list{
+display:flex;
+flex-direction:column;
+gap:1.5rem;
 }
-
-.features-list li{
-  padding:8px 0;
-  border-bottom:1px solid #eee;
-  font-size:16px;
-  color:#6b6b6b;
-  display:flex;
-  align-items:center;
+.progress-item{
+display:flex;
+flex-direction:column;
+gap:.55rem;
 }
-
-.features-list li:before{
-  content:"•";
-  color:#2d6a4f;
-  font-weight:bold;
-  display:inline-block;
-  width:1em;
-  margin-left:-1em;
+.progress-header{
+display:flex;
+justify-content:space-between;
+font-weight:600;
 }
-
-.coming-soon-actions{
-  margin-top:30px;
+.progress-track{
+height:12px;
+background:#ececec;
+border-radius:999px;
+overflow:hidden;
 }
-
-.btn-ghost{
-  display:inline-block;
-  background:transparent;
-  color:#6b6b6b;
-  padding:0.65rem 1.5rem;
-  border-radius:var(--radius-sm);
-  font-size:0.9rem;
-  font-weight:500;
-  border:1px solid var(--border);
-  transition:all 0.2s;
-  text-decoration:none;
-  margin-left:10px;
+.progress-fill{
+height:100%;
+width:0;
+background:linear-gradient(90deg,#4f46e5,#7c3aed);
+border-radius:999px;
+transition:width .8s ease;
 }
-
-.btn-ghost:hover{
-  border-color:#0f0f0f;
-  color:#0f0f0f;
+.category-fill{
+background:linear-gradient(90deg,#10b981,#22c55e);
 }
-
-.preview-card{
-  background:#fff;
-  border:1px solid #e5e1da;
-  border-radius:var(--radius-md);
-  padding:30px;
-  margin-top:40px;
+.progress-value{
+font-size:.9rem;
+color:#666;
 }
-
-.preview-card h3{
-  font-size:22px;
-  margin-bottom:20px;
-  color:#2d2d2d;
-}
-
-.mock-chart-placeholder{
-  background:#f7f6f3;
-  border-radius:var(--radius-md);
-  padding:25px;
-}
-
-.chart-title{
-  font-size:18px;
-  font-weight:600;
-  color:#2d2d2d;
-  margin-bottom:15px;
-}
-
-.chart-placeholder{
-  height:120px;
-  position:relative;
-  margin:15px 0;
-}
-
-.placeholder-bars{
-  display:flex;
-  height:100%;
-  gap:8px;
-}
-
-.placeholder-bar{
-  flex:1;
-  background:#e8f0eb;
-  border-radius:4px;
-  animation: pulse 2s infinite;
-}
-
-.placeholder-bar:nth-child(2){
-  animation-delay:0.2s;
-}
-
-.placeholder-bar:nth-child(3){
-  animation-delay:0.4s;
-}
-
-.placeholder-bar:nth-child(4){
-  animation-delay:0.6s;
-}
-
-.placeholder-bar:nth-child(5){
-  animation-delay:0.8s;
-}
-
-.placeholder-bar:nth-child(6){
-  animation-delay:1.0s;
-}
-
-@keyframes pulse{
-  0%, 100%{
-    opacity:0.6;
-  }
-  50%{
-    opacity:1;
-  }
-}
-
-.chart-subtitle{
-  font-size:14px;
-  color:#6b6b6b;
-  text-align:center;
-  margin-top:10px;
-}
-
 @media(max-width:768px){
-  .analytics-page{
-    padding:30px 15px;
-  }
 
-  .coming-soon-card{
-    padding:30px;
-  }
-
-  .preview-card{
-    padding:20px;
-    margin-top:30px;
-  }
+.bars{
+overflow-x:auto;
 }
+
+}
+
 </style>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    lucide.createIcons();
+});
+</script>
 {% endblock %}

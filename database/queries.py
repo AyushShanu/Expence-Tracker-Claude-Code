@@ -1,4 +1,5 @@
 from .db import get_db
+import datetime
 
 
 def get_user_by_id(user_id):
@@ -83,7 +84,7 @@ def get_user_category_breakdown(user_id, start_date=None, end_date=None):
     total_query = """
         SELECT
             COALESCE(SUM(amount), 0) AS total
-        FROM expenses
+        FROM expenses e
         WHERE user_id = ?
     """
     total_params = [user_id]
@@ -116,7 +117,7 @@ def get_user_category_breakdown(user_id, start_date=None, end_date=None):
     total_spent = cursor.fetchone()["total"]
 
     # Spending per category
-    cursor.execute(category_query, tuple(category_params))
+    cursor.execute(category_query + " GROUP BY c.name", tuple(category_params))
     rows = cursor.fetchall()
 
     breakdown = []
@@ -161,7 +162,7 @@ def get_user_summary_stats(user_id, start_date=None, end_date=None):
         SELECT
             COALESCE(SUM(amount), 0) AS total_spent,
             COUNT(*) AS transaction_count
-        FROM expenses
+        FROM expenses e
         WHERE user_id = ?
     """
     stats_params = [user_id]
@@ -202,3 +203,58 @@ def get_user_summary_stats(user_id, start_date=None, end_date=None):
         "transaction_count": result["transaction_count"],
         "top_category": category["name"] if category else "—",
     }
+
+
+def get_user_monthly_trend(user_id, start_date=None, end_date=None):
+    """
+    Return monthly spending totals for the last 6 months (or within date range).
+    Returns a list of dicts with keys: 'month' (string like 'Jan'), 'amount' (float).
+    Optional start_date and end_date filter results to the given date range (inclusive).
+    Dates must be in 'YYYY-MM-DD' format.
+    """
+    db = get_db()
+    cursor = db.cursor()
+
+    # Base query for monthly totals
+    query = """
+        SELECT
+            strftime('%Y-%m', e.date) AS year_month,
+            SUM(e.amount) AS amount
+        FROM expenses e
+        WHERE e.user_id = ?
+    """
+    params = [user_id]
+
+    # Add date filtering if both dates are provided and valid
+    if start_date and end_date:
+        # Simple validation: check for YYYY-MM-DD format (basic)
+        if len(start_date) == 10 and start_date[4] == '-' and start_date[7] == '-' and \
+           len(end_date) == 10 and end_date[4] == '-' and end_date[7] == '-':
+            query += " AND e.date BETWEEN ? AND ?"
+            params.extend([start_date, end_date])
+
+    query += " GROUP BY year_month ORDER BY year_month DESC LIMIT 6"
+
+    cursor.execute(query, tuple(params))
+    rows = cursor.fetchall()
+
+    # Convert to list of dicts with month name (e.g., 'Jan') and amount
+    trend = []
+    for row in rows:
+        # Parse year_month string like '2024-01' to get month name
+        try:
+            year_month = row["year_month"]
+            # Assuming year_month is in 'YYYY-MM' format
+            month_num = int(year_month.split('-')[1])
+            # Convert month number to abbreviated name
+            month_name = datetime.date(1900, month_num, 1).strftime('%b')
+        except (ValueError, AttributeError):
+            month_name = row["year_month"]  # fallback
+        trend.append({
+            "month": month_name,
+            "amount": row["amount"]
+        })
+
+    # Reverse to get chronological order (oldest first) for charting
+    trend.reverse()
+    return trend
