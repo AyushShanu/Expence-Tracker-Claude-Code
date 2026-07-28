@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from database.db import get_db, init_db, seed_db
+import os
 from database.queries import (
     get_user_by_id,
     get_user_summary_stats,
@@ -350,12 +351,8 @@ def add_expense():
     return render_template("expenses/add.html", categories=categories)
 
 
-import os
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
-    app.run(
-        host="0.0.0.0",
-        port=port,
-        debug=False
-    )
+    app.run(host="0.0.0.0", port=port, debug=False)
